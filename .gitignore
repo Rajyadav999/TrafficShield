@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+*.egg-info/
+
+# FastAPI / Uvicorn
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+.next/
+
+# Vite
+frontend/dist/
+frontend/.vite/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Redis
+dump.rdb
+
+# MongoDB
+data/
+
+# k6 results
+load-tests/results/
+
+# VS Code
+.vscode/
