@@ -1,0 +1,16 @@
+# Core Framework
+fastapi
+uvicorn[standard]
+
+# MongoDB - Async Driver (for FastAPI)
+motor
+pymongo
+
+# Redis - Caching Layer
+redis
+
+# Environment Variables
+python-dotenv
+
+# Data Validation (comes with FastAPI but pinning it)
+pydantic
