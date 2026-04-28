@@ -1,6 +1,6 @@
 import { Destination, Hotel, Package, HotelBookingForm, PackageBookingForm } from '../types';
 
-const BASE = 'http://localhost:8000';  
+const BASE = 'http://localhost:8001';  
 
 const get = async <T>(path: string): Promise<T> => {
   const res = await fetch(`${BASE}${path}`);

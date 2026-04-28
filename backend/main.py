@@ -8,7 +8,9 @@ from bson import ObjectId
 from dotenv import load_dotenv
 import uuid
 import os
+import uvicorn
 import bcrypt
+import time
 
 load_dotenv()
 
@@ -117,7 +119,19 @@ class BookingQuery(BaseModel):
 
 @app.get("/")
 def root():
-    return {"message": "WanderLust Travel API is live 🌍"}
+    return {
+        "message": "WanderLust Travel API is live 🌍",
+        "instance_port": PORT,
+        "status": "healthy"
+    }
+
+@app.get("/health")
+async def health():
+    return {
+        "status": "ok",
+        "instance_port": PORT,
+        "timestamp": time.time()
+    }
 
 # ── Destinations ──────────────────────────────────────────────────────────────
 
@@ -288,5 +302,4 @@ async def search(q: str = Query(..., min_length=1)):
 # ─── Run ──────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=PORT, reload=True)
