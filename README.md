@@ -156,9 +156,9 @@ pip install -r requirements.txt
 
 ```bash
 # Run all 3 instances simultaneously
-uvicorn main:app --port 8001 &
-uvicorn main:app --port 8002 &
-uvicorn main:app --port 8003 &
+PORT=8001 uvicorn main:app --port 8001 &
+PORT=8002 uvicorn main:app --port 8002 &
+PORT=8003 uvicorn main:app --port 8003 &
 ```
 
 Each instance runs the same WanderLust API. Every response includes an `instance_port` field so you can see which instance handled the request:

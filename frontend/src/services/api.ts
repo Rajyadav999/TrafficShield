@@ -1,6 +1,6 @@
 import { Destination, Hotel, Package, HotelBookingForm, PackageBookingForm } from '../types';
 
-const BASE = 'http://localhost:8001';  
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8001';
 
 const get = async <T>(path: string): Promise<T> => {
   const res = await fetch(`${BASE}${path}`);
@@ -39,11 +39,8 @@ export const api = {
   getPackage: (id: string) => get<Package>(`/packages/${id}`),
   bookHotel: (form: HotelBookingForm) => post('/bookings/hotel', form),
   bookPackage: (form: PackageBookingForm) => post('/bookings/package', form),
-
-  // ← UPDATED: now POST with email + password instead of GET
   getMyTrips: (email: string, password: string) =>
     post<unknown[]>('/bookings/view', { email, password }),
-
   search: (q: string) =>
     get<{ destinations: Destination[]; hotels: Hotel[]; packages: Package[] }>(
       `/search?q=${encodeURIComponent(q)}`
