@@ -1,0 +1,88 @@
+
+
+services:
+
+  # ─── MongoDB ────────────────────────────────────────────
+  mongodb:
+    image: mongo:7.0
+    container_name: trafficshield_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - trafficshield_network
+
+  # ─── Redis ──────────────────────────────────────────────
+  redis:
+    image: redis:alpine
+    container_name: trafficshield_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - trafficshield_network
+
+  # ─── WanderLust Instance 1 ──────────────────────────────
+  backend_8001:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wanderlust_8001
+    environment:
+      - PORT=8001
+      - MONGO_URL=mongodb://mongodb:27017
+      - DB_NAME=wanderlust
+      - REDIS_HOST=redis
+    ports:
+      - "8001:8001"
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - trafficshield_network
+
+  # ─── WanderLust Instance 2 ──────────────────────────────
+  backend_8002:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wanderlust_8002
+    environment:
+      - PORT=8002
+      - MONGO_URL=mongodb://mongodb:27017
+      - DB_NAME=wanderlust
+      - REDIS_HOST=redis
+    ports:
+      - "8002:8002"
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - trafficshield_network
+
+  # ─── WanderLust Instance 3 ──────────────────────────────
+  backend_8003:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wanderlust_8003
+    environment:
+      - PORT=8003
+      - MONGO_URL=mongodb://mongodb:27017
+      - DB_NAME=wanderlust
+      - REDIS_HOST=redis
+    ports:
+      - "8003:8003"
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - trafficshield_network
+
+# ─── Volumes & Networks ─────────────────────────────────
+volumes:
+  mongodb_data:
+
+networks:
+  trafficshield_network:
+    driver: bridge

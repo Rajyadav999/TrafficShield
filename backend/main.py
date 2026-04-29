@@ -11,6 +11,8 @@ import os
 import uvicorn
 import bcrypt
 import time
+import redis
+import json
 
 load_dotenv()
 
@@ -33,6 +35,10 @@ app.add_middleware(
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
 
+# ─── Redis Setup ──────────────────────────────────────────────────────────────
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+redis_client = redis.Redis(host=REDIS_HOST, port=6379, decode_responses=True)
+CACHE_TTL = 60  # cache data for 60 seconds
 # ─── Helper ───────────────────────────────────────────────────────────────────
 
 def fix_id(doc):
@@ -137,6 +143,17 @@ async def health():
 
 @app.get("/destinations")
 async def get_destinations(category: Optional[str] = None, search: Optional[str] = None):
+    # build a unique cache key based on query params
+    cache_key = f"destinations:{category or 'all'}:{search or 'none'}"
+
+    # check Redis first
+    cached = redis_client.get(cache_key)
+    if cached:
+        print(f"✅ Cache HIT — {cache_key} on port {PORT}")
+        return json.loads(cached)
+
+    # cache miss — query MongoDB
+    print(f"❌ Cache MISS — {cache_key} on port {PORT}")
     query = {}
     if category and category != "All":
         query["category"] = category
@@ -146,7 +163,12 @@ async def get_destinations(category: Optional[str] = None, search: Optional[str]
             {"country": {"$regex": search, "$options": "i"}}
         ]
     results = await db["destinations"].find(query).to_list(length=100)
-    return [fix_id(d) for d in results]
+    data = [fix_id(d) for d in results]
+
+    # store in Redis with TTL
+    redis_client.setex(cache_key, CACHE_TTL, json.dumps(data))
+
+    return data
 
 @app.get("/destinations/{destination_id}")
 async def get_destination(destination_id: str):
@@ -159,13 +181,29 @@ async def get_destination(destination_id: str):
 
 @app.get("/hotels")
 async def get_hotels(destination_id: Optional[str] = None, category: Optional[str] = None):
+    # build unique cache key
+    cache_key = f"hotels:{destination_id or 'all'}:{category or 'all'}"
+
+    # check Redis first
+    cached = redis_client.get(cache_key)
+    if cached:
+        print(f"✅ Cache HIT — {cache_key} on port {PORT}")
+        return json.loads(cached)
+
+    # cache miss — query MongoDB
+    print(f"❌ Cache MISS — {cache_key} on port {PORT}")
     query = {}
     if destination_id:
         query["destination_id"] = destination_id
     if category and category != "All":
         query["category"] = category
     results = await db["hotels"].find(query).to_list(length=100)
-    return [fix_id(h) for h in results]
+    data = [fix_id(h) for h in results]
+
+    # store in Redis with TTL
+    redis_client.setex(cache_key, CACHE_TTL, json.dumps(data))
+
+    return data
 
 @app.get("/hotels/{hotel_id}")
 async def get_hotel(hotel_id: str):
