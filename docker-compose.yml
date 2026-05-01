@@ -1,8 +1,6 @@
-
-
 services:
 
-  # ─── MongoDB ────────────────────────────────────────────
+  # ─── MongoDB ─────────────────────────────────────
   mongodb:
     image: mongo:7.0
     container_name: trafficshield_mongodb
@@ -12,8 +10,9 @@ services:
       - mongodb_data:/data/db
     networks:
       - trafficshield_network
+    restart: always                    # ← auto-restart
 
-  # ─── Redis ──────────────────────────────────────────────
+  # ─── Redis ───────────────────────────────────────
   redis:
     image: redis:alpine
     container_name: trafficshield_redis
@@ -21,8 +20,9 @@ services:
       - "6379:6379"
     networks:
       - trafficshield_network
+    restart: always                    # ← auto-restart
 
-  # ─── WanderLust Instance 1 ──────────────────────────────
+  # ─── WanderLust Instance 1 ───────────────────────
   backend_8001:
     build:
       context: ./backend
@@ -40,8 +40,15 @@ services:
       - redis
     networks:
       - trafficshield_network
+    restart: always                    # ← auto-restart if crashed
+    healthcheck:                       # ← health monitoring
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
-  # ─── WanderLust Instance 2 ──────────────────────────────
+  # ─── WanderLust Instance 2 ───────────────────────
   backend_8002:
     build:
       context: ./backend
@@ -59,8 +66,15 @@ services:
       - redis
     networks:
       - trafficshield_network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
-  # ─── WanderLust Instance 3 ──────────────────────────────
+  # ─── WanderLust Instance 3 ───────────────────────
   backend_8003:
     build:
       context: ./backend
@@ -78,10 +92,46 @@ services:
       - redis
     networks:
       - trafficshield_network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
-# ─── Volumes & Networks ─────────────────────────────────
+  # ─── Prometheus ───────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: trafficshield_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - trafficshield_network
+    restart: always
+
+  # ─── Grafana ─────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: trafficshield_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - trafficshield_network
+    restart: always
+
+# ─── Volumes & Networks ───────────────────────────
 volumes:
   mongodb_data:
+  grafana_data:
 
 networks:
   trafficshield_network:

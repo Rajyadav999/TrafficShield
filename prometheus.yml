@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'wanderlust-8001'
+    static_configs:
+      - targets: ['wanderlust_8001:8001']
+
+  - job_name: 'wanderlust-8002'
+    static_configs:
+      - targets: ['wanderlust_8002:8002']
+
+  - job_name: 'wanderlust-8003'
+    static_configs:
+      - targets: ['wanderlust_8003:8003']

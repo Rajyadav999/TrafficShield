@@ -13,6 +13,7 @@ import bcrypt
 import time
 import redis
 import json
+from prometheus_fastapi_instrumentator import Instrumentator
 
 load_dotenv()
 
@@ -21,6 +22,8 @@ DB_NAME = os.getenv("DB_NAME", "wanderlust")
 PORT = int(os.getenv("PORT", 8000))
 
 app = FastAPI(title="WanderLust Travel API", version="1.0.0")
+# ─── Prometheus Metrics ───────────────────────────────────────────
+Instrumentator().instrument(app).expose(app)
 
 app.add_middleware(
     CORSMiddleware,
