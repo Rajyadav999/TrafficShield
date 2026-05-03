@@ -325,7 +325,5 @@ VITE_API_URL=http://localhost:80
 ---
 
 ## 👤 Author
-
-**Raj Yadav**
 - GitHub: [@Rajyadav999](https://github.com/Rajyadav999)
 
